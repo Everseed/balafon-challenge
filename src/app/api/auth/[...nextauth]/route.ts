@@ -1,85 +1,100 @@
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import NextAuth, { AuthOptions, DefaultSession } from 'next-auth';
+import NextAuth, { AuthOptions, DefaultSession, NextAuthOptions } from 'next-auth';
 import GitHubProvider from 'next-auth/providers/github';
-import EmailProvider from 'next-auth/providers/email';
+import EmailProvider, { SendVerificationRequestParams } from 'next-auth/providers/email';
+import GithubProvider from "next-auth/providers/github";
+import GoogleProvider from "next-auth/providers/google";
 import type { UserRole } from '@prisma/client';
+import { Resend } from 'resend';
 import prisma from '../../../../lib/prisma';
+
+/* if (
+  !process.env.GITHUB_CLIENT_ID ||
+  !process.env.GITHUB_SECRET_ID ||
+  !process.env.GOOGLE_CLIENT_ID ||
+  !process.env.GOOGLE_SECRET_ID
+) {
+  throw new Error("Auth required env variables are not set");
+} */
 
 declare module 'next-auth' {
   interface Session extends DefaultSession {
     user: {
       id: string;
+      timezone: string;
       role: UserRole;
     } & DefaultSession['user'];
   }
 }
 
-export const nextAuthOptions = {
+export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
-  session: {
-    strategy: 'jwt'
-  },
-  secret: process.env.AUTH_SECRET,
+  // Configure one or more authentication providers
   providers: [
-    GitHubProvider({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_SECRET_ID,
+    }),
+    GithubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_SECRET_ID,
     }),
     EmailProvider({
-      server: {
-        host: process.env.EMAIL_SERVER_HOST,
-        port: process.env.EMAIL_SERVER_PORT,
-        auth: {
-          user: process.env.EMAIL_SERVER_USER,
-          pass: process.env.EMAIL_SERVER_PASSWORD
+      server: '',
+      from: 'noreply@rezahedi.dev',
+      sendVerificationRequest : async ( params: SendVerificationRequestParams ) => {
+        let { identifier, url, provider } = params;
+        try {
+          let resend = new Resend(process.env.RESEND_API_KEY!)
+          await resend.emails.send({
+            from: provider.from,
+            to: identifier,
+            subject: 'Your StreakUp Login Link',
+            html: '<html><body>\
+              <h2>Your Login Link</h2>\
+              <p>Welcome to StreakUp!</p>\
+              <p>Please click the magic link below to sign in to your account.</p>\
+              <p><a href="' + url + '"><b>Sign in</b></a></p>\
+              <p>or copy and paste this URL into your browser:</p>\
+              <p><a href="' + url + '">' + url + '</a></p>\
+              <br /><br /><hr />\
+              <p><i>This email was intended for ' + identifier + '. If you were not expecting this email, you can ignore this email.</i></p>\
+              </body></html>',
+          });
+        } catch (error) {
+          console.log({ error });
         }
       },
-      from: process.env.EMAIL_FROM,
-      maxAge: 10 * 60 // Magic links expire in 10 mins
-    })
+    }),
+    
   ],
+  debug: process.env.NODE_ENV === "development",
+  
   callbacks: {
-    async signIn(options) {
-      options.user.email = `${options.user.id}@example.com`;
-      options.user.name = `Test`;
-      return true;
-    },
-    async jwt({ token, user }) {
-      const dbUser = await prisma.user.findFirst({
-        where: {
-          email: token.email
-        }
-      });
-
-      if (!dbUser) {
-        if (user) {
-          token.id = user.id;
-        }
-        return token;
-      }
-
-      return {
-        id: dbUser.id,
-        name: dbUser.name,
-        email: dbUser.email,
-        role: dbUser.role,
-        picture: dbUser.image
-      };
-    },
-    async session({ token, session }) {
-      if (token) {
-        session.user.id = token.id;
-        session.user.name = token.name;
-        session.user.email = token.email;
-        session.user.role = token.role;
-        session.user.image = token.picture;
+    async session({user, session}) {
+      if (session.user) {
+        let res = await prisma.user.findUnique({
+          where: {
+            id: user.id
+          }
+        });
+        session.user.timezone = res!.timezone
+        session.user.id = user.id;
       }
 
       return session;
+    },
+  },
+  pages: {
+    signIn: "/signin",
+  },
+  /* events: {
+    createUser: async (message) => {
+      // Record event log: new user signup
+      await recordEvent('signup')
     }
-  }
-} satisfies AuthOptions;
-
-const handler = NextAuth(nextAuthOptions);
+  } */
+};
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
