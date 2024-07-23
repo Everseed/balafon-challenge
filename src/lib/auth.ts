@@ -66,10 +66,8 @@ import prisma from './prisma';
           }
         },
       }),
-      
     ],
     debug: process.env.NODE_ENV === "development",
-    
     callbacks: {
       async session({user, session}) {
         if (session.user) {
