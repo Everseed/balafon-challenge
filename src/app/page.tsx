@@ -1,7 +1,7 @@
-import HeroBanner from './hero-banner';
-import BannerSvg from './banner-svg';
+import HeroBanner from '../components/hero-banner';
+import BannerSvg from '../components/ui/banner-svg';
 import { siteConfig } from '@/config/site';
-import { GameGrid } from './game-grid';
+import { GameGrid } from '../components/game-grid';
 
 export default async function Home() {
   const stars = null;

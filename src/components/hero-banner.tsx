@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import TitleBackdropSvg from './title-backdrop-svg';
+import TitleBackdropSvg from './ui/title-backdrop-svg';
 import { ArrowRight } from 'lucide-react';
 
 export default function HeroBanner() {

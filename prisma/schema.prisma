@@ -78,6 +78,7 @@ model User {
   level         Int       @default(1)
 
   results              Result[]
+  challenges           Challenge[]
   achievements         Achievement[]
   followers            String[]
   following            String[]
@@ -115,14 +116,33 @@ model Result {
 
 model Challenge {
   id String @id @default(cuid())
-
+  name            String
+  emoji           String @default("")
   snippetId    String                 @map("snippet_id")
   snippet      Snippet                @relation(fields: [snippetId], references: [id], onDelete: Cascade)
   participants ChallengeParticipant[]
 
+  repeatPattern   String @default("1d") // repeat interval, repeat type, repeat on
+  readablePattern String @default("Daily") // user readable version of repeatPattern for UI purposes
+  // a habit can have multiple check-ins in a day like (morning and evening) or week (Mon, Wed, Fri) so we need to track the check-ins for a habit, so we need two fields one for the total check-ins and one for the last check-in
+  levels          Int    @default(1) // total check-ins
+  lastLevel       Int    @default(0) // last check-in
+
+  goal            Int    @default(30) // goal is the number of check-ins required to finish a habit
+  // goal reached when streak == goal
+
+  streak       Int      @default(0) // current streak
+  lastStreak   Int      @default(0) // last streak before the current streak
+  streakBreaks Int      @default(0) // number of times the streak was broken
+
+
   startedAt DateTime? @map("started_at")
   endedAt   DateTime? @map("ended_at")
   createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("challenge")
 }
