@@ -1,11 +1,11 @@
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import { DefaultSession, NextAuthOptions } from 'next-auth';
+import { DefaultSession, DefaultUser, NextAuthOptions } from 'next-auth';
 import EmailProvider, { SendVerificationRequestParams } from 'next-auth/providers/email';
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
-import type { UserRole } from '@prisma/client';
 import { Resend } from 'resend';
 import prisma from './prisma';
+import {UserRole } from '@prisma/client';
 
 
 /* if (
@@ -17,13 +17,15 @@ import prisma from './prisma';
   throw new Error("Auth required env variables are not set");
 } */
 
+export  interface CustomUser extends DefaultUser {
+    id: string;
+    timezone: string;
+    role: UserRole;
+  }
+  
   declare module 'next-auth' {
     interface Session extends DefaultSession {
-      user: {
-        id: string;
-        timezone: string;
-        role: UserRole;
-      } & DefaultSession['user'];
+      user?: CustomUser & DefaultSession['user'];
     }
   }
   
@@ -66,20 +68,22 @@ import prisma from './prisma';
           }
         },
       }),
+
     ],
     debug: process.env.NODE_ENV === "development",
     callbacks: {
       async session({user, session}) {
-        if (session.user) {
+        /* if (session.user) { */
          /*  let res = await prisma.user.findUnique({
             where: {
               id: user.id
             }
           }); */
-          session.user.timezone = res!.timezone
+          /* session.user.timezone = res!.timezone
           session.user.id = user.id;
-        }
-  
+        } */
+        session.user.id=1;
+        session.user.name='John Doe';
         return session;
       },
     },

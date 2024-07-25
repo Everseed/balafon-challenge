@@ -40,13 +40,17 @@
     "react": "^18",
     "react-confetti": "^6.1.0",
     "react-dom": "^18",
+    "react-dropzone": "^14.2.3",
+    "react-loading-skeleton": "^3.4.0",
     "resend": "^3.5.0",
+    "sonner": "^1.5.0",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
     "unstyled-table": "^0.0.6-beta-4",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@radix-ui/colors": "^3.0.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
