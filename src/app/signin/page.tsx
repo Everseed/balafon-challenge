@@ -7,6 +7,7 @@ import EmailForm from "./EmailForm"
 import { SignInButton } from "@/components/ui/auth"
 import { Github, Google } from "@/components/ui/icons"
 import { authOptions } from "../api/auth/[...nextauth]/route"
+import NativeForm from "./NativeForm"
 
 export default async function Page() {
     const session = await getServerSession(authOptions)
@@ -38,6 +39,9 @@ export default async function Page() {
                     </SignInButton>
                     <div className="mb-4 mt-1 border-t border-gray-300" />
                     <EmailForm />
+                </div>
+                <div className="flex flex-col space-y-3 bg-gray-50 px-4 py-10 sm:px-16">
+                    <NativeForm/>
                 </div>
             </div>
         </div>

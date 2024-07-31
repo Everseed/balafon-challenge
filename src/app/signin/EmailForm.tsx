@@ -27,7 +27,8 @@ export default function EmailForm() {
             }
           });
         }}
-        className="flex flex-col space-y-3"
+        className="flex flex-col space-y-3 flex h-10 w-full items-center justify-center border text-sm transition-all focus:outline-none border-black bg-black text-white hover:bg-white hover:text-black"
+        
       >
         {showEmailOption && (
           <div>

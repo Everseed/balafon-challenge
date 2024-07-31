@@ -8,12 +8,12 @@ import { redirect } from 'next/navigation';
 export default async function page()
 {
   // Get user session token
-  /*  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions);
   if (!session || !session.user)
-    redirect('/');  */
+    redirect('/'); 
 
   // Update all missed checkins as broken
-  /* await updateChallenges(session.user); */
+  await updateChallenges(session.user);
 
   return (
     <DashboardCard />
